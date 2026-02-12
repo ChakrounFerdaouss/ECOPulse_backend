@@ -1,7 +1,20 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 
 app = FastAPI(title="EnviroRisk API")
+
+# ✅ ADD CORS HERE
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Charger les données Gold
 GOLD_PATH = "gold/gold_daily_risk.csv"
@@ -27,11 +40,21 @@ def risk_by_zone(zone_id: str):
 @app.get("/top_flood")
 def top_flood(n: int = 10):
     """Retourne les top n zones avec le plus haut flood risk moyen"""
-    top = gold_df.groupby("zone_id")["flood_risk"].mean().sort_values(ascending=False).head(n)
+    top = (
+        gold_df.groupby("zone_id")["flood_risk"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(n)
+    )
     return top.reset_index().to_dict(orient="records")
 
 @app.get("/top_drought")
 def top_drought(n: int = 10):
     """Retourne les top n zones avec le plus haut drought risk moyen"""
-    top = gold_df.groupby("zone_id")["drought_risk"].mean().sort_values(ascending=False).head(n)
+    top = (
+        gold_df.groupby("zone_id")["drought_risk"]
+        .mean()
+        .sort_values(ascending=False)
+        .head(n)
+    )
     return top.reset_index().to_dict(orient="records")
